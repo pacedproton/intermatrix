@@ -205,30 +205,43 @@ LD_PRELOAD=/usr/lib/libcxl_socket.so ./my_tcp_app
 
 ### Prerequisites
 
-- **Hardware:**
-  - CPU: Intel Sapphire Rapids or AMD Genoa (CXL 3.0+ support)
-  - CXL fabric switches (Broadcom PCIe Gen6 or Microchip PM8556)
-  - Optical cables (QSFP-DD, 3-10m)
-
 - **Software:**
-  - Linux kernel 6.8+
-  - GCC 11+ or Clang 14+
-  - Python 3.10+
+  - Linux kernel 5.10+ (any modern kernel)
+  - GCC 8+ or Clang 10+
+  - Make and kernel headers
+  - No special hardware required (uses shims)
 
-### Installation (Future)
-
-*Note: This is an architectural planning phase. Implementation has not yet started.*
+### Quick Installation
 
 ```bash
-# Install CXL-enabled kernel
-sudo apt install linux-image-cxl linux-headers-cxl
+# Clone repository
+git clone https://github.com/intermatrix/cxl-interconnect.git
+cd intermatrix
 
-# Install userspace components
-sudo apt install libcxl1 cxlfmd cxl-tools
-
-# Verify
-cxl-cli fabric list
+# Run quick start script
+./scripts/quickstart.sh
 ```
+
+### Manual Build and Run
+
+```bash
+# Build everything
+make all
+
+# Load kernel module
+sudo insmod build/kernel/cxl_interconnect.ko
+
+# Verify it loaded
+dmesg | tail -20
+
+# Run CLI tool
+./build/bin/cxl-cli fabric list
+
+# Run example
+./build/bin/simple_memory
+```
+
+See [BUILD.md](BUILD.md) for detailed build instructions.
 
 ### Example: Simple Memory Access
 
@@ -463,9 +476,13 @@ Special thanks to hardware partners:
 
 ## Status
 
-**Current Phase:** ✅ Architecture Planning Complete
-**Next Phase:** 🚧 Implementation (Q1 2025)
-**Production Ready:** 🎯 Target Q4 2026
+**Current Phase:** 🚧 Implementation (SHIM Mode)
+**Architecture:** ✅ Complete
+**Kernel Module:** ✅ Complete (with hardware shims)
+**Userspace Library:** ✅ Complete (libcxl v1.0.0)
+**Tools:** ✅ Complete (cxl-cli)
+**Examples:** ✅ Working demonstrations
+**Next Phase:** 🎯 Hardware integration and performance optimization
 
 ---
 
