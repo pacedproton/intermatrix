@@ -1,0 +1,36 @@
+# Build artifacts
+build/
+*.o
+*.ko
+*.mod.c
+*.mod
+*.order
+*.symvers
+*.cmd
+.tmp_versions/
+modules.builtin
+
+# Editor files
+*~
+*.swp
+*.swo
+.*.swp
+.*.swo
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Compiled binaries
+*.so
+*.so.*
+*.a
+
+# Test output
+*.log
+core
