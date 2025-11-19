@@ -40,7 +40,12 @@ CXL_CLI := $(BUILD_DIR)/bin/cxl-cli
 
 # Examples
 EXAMPLES := $(BUILD_DIR)/bin/simple_memory \
-            $(BUILD_DIR)/bin/verbs_example
+            $(BUILD_DIR)/bin/verbs_example \
+            $(BUILD_DIR)/bin/rdma_write_test \
+            $(BUILD_DIR)/bin/rdma_read_test \
+            $(BUILD_DIR)/bin/send_recv_test \
+            $(BUILD_DIR)/bin/atomic_test \
+            $(BUILD_DIR)/bin/rdma_bandwidth
 
 # Tests
 TEST_UNIT := $(BUILD_DIR)/tests/unit/test_libcxl_basic \
@@ -127,6 +132,31 @@ $(BUILD_DIR)/bin/simple_memory: $(EXAMPLES_DIR)/simple_memory.c $(LIBCXL_SO)
 	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
 
 $(BUILD_DIR)/bin/verbs_example: $(EXAMPLES_DIR)/verbs_example.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(BUILD_DIR)/bin
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+$(BUILD_DIR)/bin/rdma_write_test: $(EXAMPLES_DIR)/rdma_write_test.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(BUILD_DIR)/bin
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+$(BUILD_DIR)/bin/rdma_read_test: $(EXAMPLES_DIR)/rdma_read_test.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(BUILD_DIR)/bin
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+$(BUILD_DIR)/bin/send_recv_test: $(EXAMPLES_DIR)/send_recv_test.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(BUILD_DIR)/bin
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+$(BUILD_DIR)/bin/atomic_test: $(EXAMPLES_DIR)/atomic_test.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(BUILD_DIR)/bin
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+$(BUILD_DIR)/bin/rdma_bandwidth: $(EXAMPLES_DIR)/rdma_bandwidth.c $(LIBCXL_SO)
 	@echo "  CC    $<"
 	@mkdir -p $(BUILD_DIR)/bin
 	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
