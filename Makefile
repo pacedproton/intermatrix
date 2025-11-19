@@ -39,31 +39,48 @@ LIBCXL_OBJS := $(patsubst $(LIBCXL_DIR)/src/%.c,$(BUILD_DIR)/libcxl/%.o,$(LIBCXL
 CXL_CLI := $(BUILD_DIR)/bin/cxl-cli
 
 # Examples
-EXAMPLES := $(BUILD_DIR)/bin/simple_memory
+EXAMPLES := $(BUILD_DIR)/bin/simple_memory \
+            $(BUILD_DIR)/bin/verbs_example
 
-.PHONY: all kernel userspace tools examples clean install help
+# Tests
+TEST_UNIT := $(BUILD_DIR)/tests/unit/test_libcxl_basic \
+             $(BUILD_DIR)/tests/unit/test_libcxl_fabric \
+             $(BUILD_DIR)/tests/unit/test_libcxl_memory
 
-all: kernel userspace tools examples
+TEST_INTEGRATION := $(BUILD_DIR)/tests/integration/test_end_to_end
+
+TEST_PERFORMANCE := $(BUILD_DIR)/tests/performance/benchmark_memory
+
+TEST_COMPAT := $(BUILD_DIR)/tests/compat/test_verbs
+
+ALL_TESTS := $(TEST_UNIT) $(TEST_INTEGRATION) $(TEST_PERFORMANCE) $(TEST_COMPAT)
+
+.PHONY: all kernel userspace tools examples tests clean install help run-tests
+
+all: kernel userspace tools examples tests
 
 help:
 	@echo "InterMatrix - CXL Interconnect Build System"
 	@echo ""
 	@echo "Targets:"
-	@echo "  all          - Build everything (kernel + userspace)"
+	@echo "  all          - Build everything (kernel + userspace + tests)"
 	@echo "  kernel       - Build kernel modules"
 	@echo "  userspace    - Build libcxl library"
 	@echo "  tools        - Build cxl-cli tool"
 	@echo "  examples     - Build example programs"
+	@echo "  tests        - Build test suites"
+	@echo "  run-tests    - Build and run all tests"
 	@echo "  clean        - Clean all build artifacts"
 	@echo "  install      - Install to system (requires root)"
-	@echo "  test         - Run test suite"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make run-tests"
 	@echo ""
 	@echo "Installation:"
 	@echo "  sudo make install"
 	@echo ""
 	@echo "Loading kernel module:"
 	@echo "  sudo insmod build/kernel/cxl_interconnect.ko"
-	@echo "  sudo mknod /dev/cxl_fabric0 c 240 0"
 	@echo ""
 	@echo "Running example:"
 	@echo "  ./build/bin/simple_memory"
@@ -108,6 +125,72 @@ $(BUILD_DIR)/bin/simple_memory: $(EXAMPLES_DIR)/simple_memory.c $(LIBCXL_SO)
 	@echo "  CC    $<"
 	@mkdir -p $(BUILD_DIR)/bin
 	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+$(BUILD_DIR)/bin/verbs_example: $(EXAMPLES_DIR)/verbs_example.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(BUILD_DIR)/bin
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+# Tests
+tests: $(ALL_TESTS)
+
+# Unit tests
+$(BUILD_DIR)/tests/unit/%: userspace/tests/unit/%.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -pthread -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+# Integration tests
+$(BUILD_DIR)/tests/integration/%: userspace/tests/integration/%.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -pthread -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+# Performance tests
+$(BUILD_DIR)/tests/performance/%: userspace/tests/performance/%.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -pthread -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+# Compatibility tests
+$(BUILD_DIR)/tests/compat/%: userspace/tests/compat/%.c $(LIBCXL_SO)
+	@echo "  CC    $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -lcxl -pthread -Wl,-rpath,$(abspath $(BUILD_DIR)/lib)
+
+# Run all tests
+run-tests: tests
+	@echo "======================================"
+	@echo "Running InterMatrix Test Suite"
+	@echo "======================================"
+	@echo ""
+	@echo "Unit Tests:"
+	@for test in $(TEST_UNIT); do \
+		echo "  Running $$test..."; \
+		$$test || exit 1; \
+	done
+	@echo ""
+	@echo "Integration Tests:"
+	@for test in $(TEST_INTEGRATION); do \
+		echo "  Running $$test..."; \
+		$$test || exit 1; \
+	done
+	@echo ""
+	@echo "Performance Tests:"
+	@for test in $(TEST_PERFORMANCE); do \
+		echo "  Running $$test..."; \
+		$$test || exit 1; \
+	done
+	@echo ""
+	@echo "Compatibility Tests:"
+	@for test in $(TEST_COMPAT); do \
+		echo "  Running $$test..."; \
+		$$test || exit 1; \
+	done
+	@echo ""
+	@echo "======================================"
+	@echo "All tests passed!"
+	@echo "======================================"
 
 # Clean
 clean: kernel-clean
